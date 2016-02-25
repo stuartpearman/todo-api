@@ -16,21 +16,31 @@ app.get('/', (req, res) => {
 
 // GET /todos
 app.get('/todos', (req, res) => {
-  var filteredTodos = todos;
+  var where = {}
 
   if (req.query.hasOwnProperty('completed') && req.query.completed === 'true') {
-    filteredTodos = _.where(todos, {completed: true});
+    where.completed = true;
   } else if (req.query.hasOwnProperty('completed') && req.query.completed === 'false') {
-    filteredTodos = _.where(todos, {completed: false});
+    where.completed = false;
   }
 
   if (req.query.hasOwnProperty('q')) {
-    filteredTodos = _.filter(todos, function(todo){
-      return todo.description.toLowerCase().indexOf(req.query.q.toLowerCase()) !== -1;
-    })
+    where.description = {
+      $like: `%${req.query.q}%`
+    }
   }
 
-  res.json(filteredTodos);
+  db.todo.findAll({
+    where: where
+  }).then((todos) => {
+    if (!!todos) {
+      res.json(todos);
+    } else {
+      res.status(404).send();
+    }
+  }, (e) => {
+    res.status(500).json(e);
+  });
 })
 
 app.get('/todos/:id', (req, res) => {
