@@ -35,34 +35,26 @@ app.get('/todos', (req, res) => {
 
 app.get('/todos/:id', (req, res) => {
   var todoId = parseInt(req.params.id, 10);
-  var matchedTodo = _.findWhere(todos, {id: todoId});
 
-  if (matchedTodo) {
-    res.json(matchedTodo);
-  } else {
-    res.status(404).send('item not found')
-  }
+  db.todo.findById(todoId).then((item) => {
+    if (!!item) {
+      res.json(item.toJSON());
+    } else {
+      res.status(404).send();
+    }
+  }, (e) => {
+    res.status(500).json(e);
+  });
 });
 
 app.post('/todos', (req, res) => {
   var body = _.pick(req.body, 'description', 'completed');
 
   db.todo.create(body).then((todo) => {
-    res.json(todo.toJSON);
-    console.log(res.json(todo));
+    res.json(todo.toJSON());
   }, (e) => {
     res.status(400).json(e);
-  });
-
-  // if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-  //   return res.status(400).send();
-  // }
-  //
-  // body.description = body.description.trim();
-  // body.id = todoNextId++;
-  //
-  // todos.push(body);
-  // res.json(body);
+  })
 });
 
 app.delete('/todos/:id', (req, res) => {
