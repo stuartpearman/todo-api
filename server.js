@@ -107,7 +107,17 @@ app.put('/todos/:id', (req, res) => {
   })
 });
 
-db.sequelize.sync().then(() => {
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, 'email', 'password');
+
+  db.user.create(body).then((user) => {
+    res.json(user.toPublicJSON());
+  }, (e) => {
+    res.status(400).json(e);
+  })
+})
+
+db.sequelize.sync({force: true}).then(() => {
   app.listen(PORT, () => {
     console.log(`Express listening on port ${PORT}`);
   });
